@@ -10,7 +10,7 @@ app.use(express.json({ limit: "100kb" }));
 app.use(express.static(__dirname));
 
 const ADMIN_PASSWORD = "Aru330#?";
-const SECRET = process.env.SESSION_SECRET;
+const SECRET ="ARU_TOPUP_SECRET_2026";
 
 const ORDERS_FILE = path.join(__dirname, "orders.json");
 const PRODUCTS_FILE = path.join(__dirname, "products.json");

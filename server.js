@@ -8,7 +8,14 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: "100kb" }));
 app.use(express.static(__dirname));
+const SETTINGS_FILE = path.join(__dirname, "settings.json");
 
+function readSettings() {
+  return readJSON(SETTINGS_FILE, {
+    paymentMethod: "bKash",
+    bkashNumber: "01709290790"
+  });
+}
 const ADMIN_PASSWORD = "Aru330#?";
 const SECRET ="ARU_TOPUP_SECRET_2026";
 
@@ -105,7 +112,49 @@ app.post("/api/admin/login", (req, res) => {
     token: createToken()
   });
 });
+// ===============================
+// BKASH PAYMENT SETTINGS
+// ===============================
 
+// PUBLIC: Website payment settings
+app.get("/api/payment-settings", (req, res) => {
+  const settings = readSettings();
+
+  res.json({
+    paymentMethod: "bKash",
+    bkashNumber: settings.bkashNumber
+  });
+});
+
+// ADMIN: Get payment settings
+app.get("/api/admin/payment-settings", verifyToken, (req, res) => {
+  res.json(readSettings());
+});
+
+// ADMIN: Update bKash number
+app.put("/api/admin/payment-settings", verifyToken, (req, res) => {
+  const number = String(req.body.bkashNumber || "").trim();
+
+  if (!/^01[3-9]\d{8}$/.test(number)) {
+    return res.status(400).json({
+      success: false,
+      message: "Valid Bangladesh mobile number required"
+    });
+  }
+
+  const settings = {
+    paymentMethod: "bKash",
+    bkashNumber: number
+  };
+
+  saveJSON(SETTINGS_FILE, settings);
+
+  res.json({
+    success: true,
+    message: "bKash number updated",
+    settings
+  });
+});
 // PUBLIC PRODUCT LIST
 app.get("/api/products", (req, res) => {
   res.json(readProducts().filter(p => p.active !== false));

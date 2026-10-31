@@ -1,77 +1,116 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+const express = require("express");
+const path = require("path");
+const fs = require("fs");
 
+const app = express();
 const PORT = process.env.PORT || 3000;
-const ROOT_DIR = __dirname;
 
-const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.png': 'image/png',
-  '.webp': 'image/webp',
-  '.svg': 'image/svg+xml',
-  '.json': 'application/json; charset=utf-8',
-  '.ico': 'image/x-icon'
-};
+app.use(express.json());
+app.use(express.static(__dirname));
 
-const server = http.createServer((req, res) => {
-  // Decode URL and remove query strings
-  let safeUrl = decodeURI(req.url.split('?')[0]);
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "change_this_password";
 
-  // Route root '/' or '/index.html' directly to 'FFX.html'
-  if (safeUrl === '/' || safeUrl === '' || safeUrl === '/index.html') {
-    safeUrl = '/FFX.html';
+const DATA_FILE = path.join(__dirname, "orders.json");
+
+function readOrders() {
+  try {
+    return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+function saveOrders(orders) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(orders, null, 2));
+}
+
+// Admin login
+app.post("/api/admin/login", (req, res) => {
+  const { password } = req.body;
+
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({
+      success: false,
+      message: "Incorrect password"
+    });
   }
 
-  // Prevent directory traversal
-  const filePath = path.normalize(path.join(ROOT_DIR, safeUrl));
-  if (!filePath.startsWith(ROOT_DIR)) {
-    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('403 Forbidden');
-    return;
-  }
-
-  fs.stat(filePath, (err, stats) => {
-    if (err || !stats.isFile()) {
-      // Fallback: If route not found, serve FFX.html
-      const fallbackPath = path.join(ROOT_DIR, 'FFX.html');
-      fs.stat(fallbackPath, (fbErr, fbStats) => {
-        if (!fbErr && fbStats.isFile()) {
-          serveFile(fallbackPath, res);
-        } else {
-          res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-          res.end('404 Not Found');
-        }
-      });
-      return;
-    }
-
-    serveFile(filePath, res);
+  res.json({
+    success: true,
+    message: "Login successful"
   });
 });
 
-function serveFile(filePath, res) {
-  const ext = path.extname(filePath).toLowerCase();
-  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+// Create new order
+app.post("/api/orders", (req, res) => {
+  const orders = readOrders();
 
-  res.setHeader('Content-Type', contentType);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 'public, max-age=3600');
+  const order = {
+    id: Date.now().toString(),
+    uid: req.body.uid || "",
+    playerName: req.body.playerName || "",
+    package: req.body.package || "",
+    price: req.body.price || 0,
+    transactionId: req.body.transactionId || "",
+    status: "Pending",
+    createdAt: new Date().toISOString()
+  };
 
-  const stream = fs.createReadStream(filePath);
-  stream.on('error', () => {
-    if (!res.headersSent) {
-      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end('500 Internal Server Error');
-    }
+  orders.unshift(order);
+  saveOrders(orders);
+
+  res.json({
+    success: true,
+    message: "Order submitted",
+    order
   });
-  stream.pipe(res);
-}
+});
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+// Get all orders
+app.get("/api/admin/orders", (req, res) => {
+  res.json(readOrders());
+});
+
+// Update order status
+app.patch("/api/admin/orders/:id", (req, res) => {
+  const orders = readOrders();
+  const order = orders.find(o => o.id === req.params.id);
+
+  if (!order) {
+    return res.status(404).json({
+      success: false,
+      message: "Order not found"
+    });
+  }
+
+  const allowed = ["Pending", "Completed", "Cancelled"];
+
+  if (!allowed.includes(req.body.status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid status"
+    });
+  }
+
+  order.status = req.body.status;
+  saveOrders(orders);
+
+  res.json({
+    success: true,
+    order
+  });
+});
+
+// Admin page
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
+
+// Main website
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "FFX.html"));
+});
+
+app.listen(PORT, () => {
+  console.log("ARU TOPUP server running on port " + PORT);
 });

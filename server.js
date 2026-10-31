@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: "100kb" }));
 app.use(express.static(__dirname));
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_PASSWORD = "Aru330#?";
 const SECRET = process.env.SESSION_SECRET;
 
 const ORDERS_FILE = path.join(__dirname, "orders.json");

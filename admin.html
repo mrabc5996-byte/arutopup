@@ -1,403 +1,275 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ARU TOPUP | Admin Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARU TOPUP Admin</title>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
-body {
-  background: #080d18;
-  color: white;
-}
-
-header {
-  background: #101a2e;
-  padding: 18px;
-  text-align: center;
-  border-bottom: 2px solid #176bff;
-}
-
-header h2 {
-  color: #4d91ff;
-}
-
-.container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 20px;
-}
-
-input, select, button {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 7px;
-  border: 1px solid #263b60;
-  background: #111d32;
-  color: white;
-  font-size: 15px;
-}
-
-button {
-  background: #176bff;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #0052db;
-}
-
-.login-box {
-  max-width: 400px;
-  margin: 70px auto;
-  background: #101a2e;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px #14294c;
-}
-
-.login-box h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #4d91ff;
-}
-
-.dashboard {
-  display: none;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin: 20px 0;
-}
-
-.stat {
-  background: #101a2e;
-  padding: 18px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.stat h3 {
-  color: #4d91ff;
-  margin-bottom: 8px;
-}
-
-.stat p {
-  font-size: 23px;
-  font-weight: bold;
-}
-
-.order {
-  background: #101a2e;
-  border: 1px solid #263b60;
-  padding: 15px;
-  margin: 12px 0;
-  border-radius: 10px;
-  overflow-wrap: anywhere;
-}
-
-.order h3 {
-  color: #4d91ff;
-  margin-bottom: 10px;
-}
-
-.order p {
-  margin: 6px 0;
-  color: #d5dff0;
-}
-
-.status {
-  font-weight: bold;
-}
-
-.pending {
-  color: #ffcc00;
-}
-
-.completed {
-  color: #00e676;
-}
-
-.cancelled {
-  color: #ff5252;
-}
-
-.logout {
-  background: #e53935;
-  max-width: 150px;
-}
-
-.refresh {
-  background: #283d60;
-}
-
-@media(max-width: 600px) {
-  .stats {
-    grid-template-columns: 1fr;
-  }
-
-  .container {
-    padding: 12px;
-  }
-}
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:#080d18;color:white}
+header{padding:18px;background:#101a2e;text-align:center;border-bottom:2px solid #176bff}
+header h2{color:#4d91ff;margin:0}
+.container{max-width:1100px;margin:auto;padding:18px}
+.login{max-width:400px;margin:70px auto;background:#101a2e;padding:25px;border-radius:12px}
+input,select,button{width:100%;padding:12px;margin:8px 0;border-radius:7px;border:1px solid #263b60;background:#111d32;color:white}
+button{background:#176bff;border:0;font-weight:bold;cursor:pointer}
+button:hover{background:#0052db}
+.dashboard{display:none}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+.stat,.order,.section{background:#101a2e;padding:16px;border-radius:10px;margin-bottom:15px}
+.stat{text-align:center}
+.stat h3{color:#4d91ff}
+.stat p{font-size:24px;font-weight:bold}
+.order{border:1px solid #263b60;overflow-wrap:anywhere}
+.order h3{color:#4d91ff}
+.order p{margin:7px 0}
+.pending{color:#ffcc00}
+.completed{color:#00e676}
+.cancelled{color:#ff5252}
+.logout{background:#e53935}
+.refresh{background:#283d60}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:20px 0}
+.tabs button{background:#172640}
+.tabs button.active{background:#176bff}
+.section h3{color:#4d91ff}
+.hidden{display:none}
+@media(max-width:600px){.stats{grid-template-columns:1fr}.container{padding:12px}}
 </style>
 </head>
 
 <body>
 
 <header>
-  <h2>🎮 ARU TOPUP</h2>
-  <p>Administrator Dashboard</p>
+<h2>🎮 ARU TOPUP</h2>
+<p>ADMIN CONTROL PANEL</p>
 </header>
 
 <div class="container">
 
 <!-- LOGIN -->
-<div class="login-box" id="loginBox">
-  <h2>🔐 Admin Login</h2>
-
-  <input
-    type="password"
-    id="password"
-    placeholder="Enter Admin Password"
-  >
-
-  <button onclick="login()">LOGIN</button>
-
-  <p id="loginMessage"></p>
+<div class="login" id="loginBox">
+<h2 style="text-align:center;color:#4d91ff">🔐 Admin Login</h2>
+<input type="password" id="password" placeholder="Admin Password">
+<button onclick="login()">LOGIN</button>
+<p id="loginMessage"></p>
 </div>
 
 <!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
 
-  <h2>📊 Dashboard</h2>
-
-  <div class="stats">
-
-    <div class="stat">
-      <h3>Total Orders</h3>
-      <p id="totalOrders">0</p>
-    </div>
-
-    <div class="stat">
-      <h3>Pending</h3>
-      <p id="pendingOrders">0</p>
-    </div>
-
-    <div class="stat">
-      <h3>Completed</h3>
-      <p id="completedOrders">0</p>
-    </div>
-
-  </div>
-
-  <button class="refresh" onclick="loadOrders()">
-    🔄 Refresh Orders
-  </button>
-
-  <button class="logout" onclick="logout()">
-    Logout
-  </button>
-
-  <h2 style="margin-top:25px;">📦 Customer Orders</h2>
-
-  <div id="orders">
-    Loading orders...
-  </div>
-
+<div class="stats">
+<div class="stat"><h3>Total Orders</h3><p id="totalOrders">0</p></div>
+<div class="stat"><h3>Pending</h3><p id="pendingOrders">0</p></div>
+<div class="stat"><h3>Completed</h3><p id="completedOrders">0</p></div>
 </div>
 
+<button class="refresh" onclick="loadOrders()">🔄 Refresh Orders</button>
+<button class="logout" onclick="logout()">Logout</button>
+
+<div class="tabs">
+<button onclick="filterOrders('All',this)" class="active">All Orders</button>
+<button onclick="filterOrders('Pending',this)">Pending</button>
+<button onclick="filterOrders('Completed',this)">Completed</button>
+<button onclick="filterOrders('Cancelled',this)">Cancelled</button>
+</div>
+
+<input id="search" placeholder="🔍 Search UID / Player / Transaction ID" oninput="renderOrders()">
+
+<div id="orders">Loading...</div>
+
+</div>
 </div>
 
 <script>
-let adminPassword = "";
+let adminToken = "";
+let allOrders = [];
+let currentFilter = "All";
 
-async function login() {
-  const password =
-    document.getElementById("password").value;
+async function login(){
+  const password=document.getElementById("password").value;
+  const message=document.getElementById("loginMessage");
 
-  const message =
-    document.getElementById("loginMessage");
-
-  if (!password) {
-    message.innerText = "Please enter password";
+  if(!password){
+    message.innerText="Enter password";
     return;
   }
 
-  try {
-    const response = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ password })
+  try{
+    const response=await fetch("/api/admin/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({password})
     });
 
-    const data = await response.json();
+    const data=await response.json();
 
-    if (!data.success) {
-      message.innerText = "Incorrect password!";
+    if(!response.ok){
+      message.innerText="Wrong password!";
       return;
     }
 
-    adminPassword = password;
+    adminToken=data.token;
 
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("dashboard").style.display="block";
 
     loadOrders();
 
-  } catch (error) {
-    message.innerText =
-      "Server error! Please try again.";
+  }catch(error){
+    message.innerText="Server connection error";
   }
 }
 
-async function loadOrders() {
-  const box = document.getElementById("orders");
+async function loadOrders(){
+  const box=document.getElementById("orders");
+  box.innerHTML="Loading orders...";
 
-  box.innerHTML = "Loading orders...";
-
-  try {
-    const response = await fetch("/api/admin/orders", {
-      headers: {
-        "Authorization": "Bearer " + adminPassword
+  try{
+    const response=await fetch("/api/admin/orders",{
+      headers:{
+        "Authorization":"Bearer "+adminToken
       }
     });
 
-    if (!response.ok) {
-      box.innerHTML =
-        "Unable to load orders. Please check server.";
+    if(!response.ok){
+      box.innerHTML="Unable to load orders. Check server.js";
       return;
     }
 
-    const orders = await response.json();
+    allOrders=await response.json();
 
-    document.getElementById("totalOrders").innerText =
-      orders.length;
+    document.getElementById("totalOrders").innerText=allOrders.length;
+    document.getElementById("pendingOrders").innerText=
+      allOrders.filter(o=>o.status==="Pending").length;
+    document.getElementById("completedOrders").innerText=
+      allOrders.filter(o=>o.status==="Completed").length;
 
-    document.getElementById("pendingOrders").innerText =
-      orders.filter(o => o.status === "Pending").length;
+    renderOrders();
 
-    document.getElementById("completedOrders").innerText =
-      orders.filter(o => o.status === "Completed").length;
-
-    if (!orders.length) {
-      box.innerHTML = "<p>No orders found.</p>";
-      return;
-    }
-
-    box.innerHTML = "";
-
-    orders.forEach(order => {
-      const div = document.createElement("div");
-      div.className = "order";
-
-      const statusClass =
-        order.status === "Completed" ? "completed" :
-        order.status === "Cancelled" ? "cancelled" :
-        "pending";
-
-      div.innerHTML = `
-        <h3>Order #${order.id}</h3>
-
-        <p><b>UID:</b> ${escapeHTML(order.uid)}</p>
-        <p><b>Player:</b> ${escapeHTML(order.playerName)}</p>
-        <p><b>Package:</b> ${escapeHTML(order.package)}</p>
-        <p><b>Price:</b> ৳${Number(order.price) || 0}</p>
-        <p><b>Transaction ID:</b>
-        ${escapeHTML(order.transactionId)}</p>
-
-        <p><b>Status:</b>
-        <span class="status ${statusClass}">
-        ${escapeHTML(order.status)}</span></p>
-
-        <select id="status-${order.id}">
-          <option value="Pending">Pending</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
-
-        <button onclick="updateStatus('${order.id}')">
-          Update Status
-        </button>
-      `;
-
-      box.appendChild(div);
-
-      div.querySelector("select").value =
-        order.status || "Pending";
-    });
-
-  } catch (error) {
-    box.innerHTML =
-      "Connection error. Please refresh.";
+  }catch(error){
+    box.innerHTML="Connection error";
   }
 }
 
-async function updateStatus(id) {
-  const select =
-    document.getElementById("status-" + id);
+function filterOrders(status,button){
+  currentFilter=status;
 
-  const status = select.value;
+  document.querySelectorAll(".tabs button").forEach(b=>{
+    b.classList.remove("active");
+  });
 
-  try {
-    const response = await fetch(
-      "/api/admin/orders/" + encodeURIComponent(id),
+  button.classList.add("active");
+  renderOrders();
+}
+
+function renderOrders(){
+  const box=document.getElementById("orders");
+  const search=document.getElementById("search").value.toLowerCase();
+
+  let filtered=allOrders.filter(order=>{
+    const statusMatch=currentFilter==="All"||
+      order.status===currentFilter;
+
+    const searchMatch=
+      String(order.uid||"").toLowerCase().includes(search)||
+      String(order.playerName||"").toLowerCase().includes(search)||
+      String(order.transactionId||"").toLowerCase().includes(search);
+
+    return statusMatch&&searchMatch;
+  });
+
+  if(!filtered.length){
+    box.innerHTML="<div class='section'>No orders found.</div>";
+    return;
+  }
+
+  box.innerHTML="";
+
+  filtered.forEach(order=>{
+    const div=document.createElement("div");
+    div.className="order";
+
+    const statusClass=
+      order.status==="Completed"?"completed":
+      order.status==="Cancelled"?"cancelled":"pending";
+
+    div.innerHTML=`
+      <h3>📦 Order #${escapeHTML(order.id)}</h3>
+      <p><b>UID:</b> ${escapeHTML(order.uid)}</p>
+      <p><b>Player:</b> ${escapeHTML(order.playerName)}</p>
+      <p><b>Package:</b> ${escapeHTML(order.package)}</p>
+      <p><b>Price:</b> ৳${Number(order.price)||0}</p>
+      <p><b>Transaction ID:</b> ${escapeHTML(order.transactionId)}</p>
+      <p><b>Date:</b> ${escapeHTML(order.createdAt)}</p>
+      <p><b>Status:</b> <span class="${statusClass}">
+      ${escapeHTML(order.status)}</span></p>
+
+      <select id="status-${order.id}">
+        <option value="Pending">Pending</option>
+        <option value="Completed">Completed</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+
+      <button onclick="updateStatus('${order.id}')">
+      Update Order Status</button>
+    `;
+
+    box.appendChild(div);
+
+    div.querySelector("select").value=order.status||"Pending";
+  });
+}
+
+async function updateStatus(id){
+  const status=document.getElementById("status-"+id).value;
+
+  try{
+    const response=await fetch(
+      "/api/admin/orders/"+encodeURIComponent(id),
       {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + adminPassword
+        method:"PATCH",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer "+adminToken
         },
-        body: JSON.stringify({ status })
+        body:JSON.stringify({status})
       }
     );
 
-    const data = await response.json();
+    const data=await response.json();
 
-    if (!response.ok) {
-      alert(data.message || "Update failed");
+    if(!response.ok){
+      alert(data.message||"Update failed");
       return;
     }
 
     alert("Order status updated!");
     loadOrders();
 
-  } catch (error) {
-    alert("Server connection error!");
+  }catch(error){
+    alert("Server connection error");
   }
 }
 
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
+function escapeHTML(value){
+  return String(value??"").replace(/[&<>"']/g,char=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
   }[char]));
 }
 
-function logout() {
-  adminPassword = "";
+function logout(){
+  adminToken="";
+  allOrders=[];
 
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("loginBox").style.display = "block";
-  document.getElementById("password").value = "";
+  document.getElementById("dashboard").style.display="none";
+  document.getElementById("loginBox").style.display="block";
+  document.getElementById("password").value="";
+  document.getElementById("loginMessage").innerText="";
 }
 </script>
 

@@ -94,7 +94,7 @@ app.post("/api/admin/login", (req, res) => {
     });
   }
 
-  if (req.body.password !== Aru330#?) {
+  if (req.body.password !== ADMIN_PASSWORD) {
     return res.status(401).json({
       message: "Incorrect password"
     });

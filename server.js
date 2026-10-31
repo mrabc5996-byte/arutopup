@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "change_this_password";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Aru123#?";
 
 const DATA_FILE = path.join(__dirname, "orders.json");
 

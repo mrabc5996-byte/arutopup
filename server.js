@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: "100kb" }));
 app.use(express.static(__dirname));
 
-const ADMIN_PASSWORD = process.env.Aru330#?;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const SECRET = process.env.SESSION_SECRET;
 
 const ORDERS_FILE = path.join(__dirname, "orders.json");
@@ -94,7 +94,7 @@ app.post("/api/admin/login", (req, res) => {
     });
   }
 
-  if (req.body.password !== ADMIN_PASSWORD) {
+  if (req.body.password !== Aru330#?) {
     return res.status(401).json({
       message: "Incorrect password"
     });

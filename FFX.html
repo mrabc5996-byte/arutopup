@@ -2816,5 +2816,44 @@ setInterval(fetchFreshAccountConfig, 15000);
 })();
 </script>
  
+<script>
+(async function(){
+  const grid = document.getElementById("pkGrid");
+  if(!grid) return;
+
+  try {
+    const response = await fetch("/api/products");
+    if(!response.ok) throw new Error("Products load failed");
+
+    const products = await response.json();
+    if(!Array.isArray(products)) return;
+
+    const active = products.filter(p => p.active !== false);
+    if(!active.length) return;
+
+    grid.innerHTML = active.map(p => `
+      <button type="button" class="pk"
+        data-name="${String(p.name).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}"
+        data-price="${Number(p.price)}">
+        <span>${String(p.name).replace(/&/g,"&amp;").replace(/</g,"&lt;")}</span>
+        <b>BDT ${Number(p.price).toLocaleString("en-BD")}</b>
+      </button>
+    `).join("");
+
+    grid.querySelectorAll(".pk").forEach(button => {
+      button.addEventListener("click", function(){
+        grid.querySelectorAll(".pk").forEach(x => x.classList.remove("on"));
+        this.classList.add("on");
+        sel.name = this.dataset.name;
+        sel.price = Number(this.dataset.price);
+        upd();
+      });
+    });
+  } catch(error) {
+    console.error("Product loading error:", error);
+  }
+})();
+</script>
+
 </body>
 </html>

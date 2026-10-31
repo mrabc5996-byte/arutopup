@@ -2854,6 +2854,138 @@ setInterval(fetchFreshAccountConfig, 15000);
   }
 })();
 </script>
+<!-- ARU TOPUP ADD MONEY PANEL -->
+<section id="depositPanel" style="padding:20px;background:#101827;color:white;border-radius:12px;margin:20px 0;font-family:Arial">
+  <h2>💰 Add Money Management</h2>
 
+  <button onclick="loadDeposits()">Refresh Requests</button>
+  <button onclick="loadWallets()">Refresh Wallets</button>
+
+  <h3>Pending / All Requests</h3>
+  <div id="depositList">Loading...</div>
+
+  <h3>Customer Wallet Balances</h3>
+  <div id="walletList">Loading...</div>
+</section>
+
+<script>
+const depositToken = sessionStorage.getItem("aru_admin_token");
+
+async function adminAPI(url, options = {}) {
+  if (!depositToken) {
+    alert("Please login to Admin Panel first.");
+    throw new Error("Login required");
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + depositToken,
+      ...(options.headers || {})
+    }
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Request failed");
+  }
+
+  return data;
+}
+
+async function loadDeposits() {
+  const box = document.getElementById("depositList");
+  box.textContent = "Loading...";
+
+  try {
+    const deposits = await adminAPI("/api/admin/deposits");
+
+    if (!deposits.length) {
+      box.textContent = "No Add Money Requests";
+      return;
+    }
+
+    box.innerHTML = deposits.map(d => `
+      <div style="background:#1e293b;padding:14px;margin:10px 0;border-radius:9px">
+        <b>UID:</b> ${escapeHTML(d.uid)}<br>
+        <b>Amount:</b> ৳${Number(d.amount).toLocaleString("en-BD")}<br>
+        <b>Sender:</b> ${escapeHTML(d.senderNumber)}<br>
+        <b>TrxID:</b> ${escapeHTML(d.transactionId)}<br>
+        <b>Status:</b> ${escapeHTML(d.status)}<br>
+        <small>${escapeHTML(d.createdAt || "")}</small><br><br>
+
+        ${d.status === "Pending" ? `
+          <button onclick="processDeposit('${d.id}','Approved')">Approve</button>
+          <button onclick="processDeposit('${d.id}','Rejected')">Reject</button>
+        ` : ""}
+      </div>
+    `).join("");
+  } catch (error) {
+    box.textContent = error.message;
+  }
+}
+
+async function processDeposit(id, status) {
+  const message = status === "Approved"
+    ? "Payment verified in bKash records?"
+    : "Reject this request?";
+
+  if (!confirm(message)) return;
+
+  try {
+    await adminAPI("/api/admin/deposits/" + encodeURIComponent(id), {
+      method: "PATCH",
+      body: JSON.stringify({ status })
+    });
+
+    alert(status === "Approved" ? "Request approved" : "Request rejected");
+
+    loadDeposits();
+    loadWallets();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function loadWallets() {
+  const box = document.getElementById("walletList");
+  box.textContent = "Loading...";
+
+  try {
+    const wallets = await adminAPI("/api/admin/wallets");
+
+    const entries = Object.entries(wallets);
+
+    if (!entries.length) {
+      box.textContent = "No Wallets Found";
+      return;
+    }
+
+    box.innerHTML = entries.map(([uid, balance]) => `
+      <div style="background:#1e293b;padding:12px;margin:8px 0;border-radius:8px">
+        <b>UID:</b> ${escapeHTML(uid)}
+        <br><b>Balance:</b> ৳${Number(balance).toLocaleString("en-BD")}
+      </div>
+    `).join("");
+  } catch (error) {
+    box.textContent = error.message;
+  }
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+loadDeposits();
+loadWallets();
+</script>
 </body>
 </html>

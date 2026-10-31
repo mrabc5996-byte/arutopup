@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARU TOPUP | Admin Panel</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #080d18;
+  color: white;
+}
+
+header {
+  background: #101a2e;
+  padding: 18px;
+  text-align: center;
+  border-bottom: 2px solid #176bff;
+}
+
+header h2 {
+  color: #4d91ff;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 7px;
+  border: 1px solid #263b60;
+  background: #111d32;
+  color: white;
+  font-size: 15px;
+}
+
+button {
+  background: #176bff;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0052db;
+}
+
+.login-box {
+  max-width: 400px;
+  margin: 70px auto;
+  background: #101a2e;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px #14294c;
+}
+
+.login-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #4d91ff;
+}
+
+.dashboard {
+  display: none;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.stat {
+  background: #101a2e;
+  padding: 18px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.stat h3 {
+  color: #4d91ff;
+  margin-bottom: 8px;
+}
+
+.stat p {
+  font-size: 23px;
+  font-weight: bold;
+}
+
+.order {
+  background: #101a2e;
+  border: 1px solid #263b60;
+  padding: 15px;
+  margin: 12px 0;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+
+.order h3 {
+  color: #4d91ff;
+  margin-bottom: 10px;
+}
+
+.order p {
+  margin: 6px 0;
+  color: #d5dff0;
+}
+
+.status {
+  font-weight: bold;
+}
+
+.pending {
+  color: #ffcc00;
+}
+
+.completed {
+  color: #00e676;
+}
+
+.cancelled {
+  color: #ff5252;
+}
+
+.logout {
+  background: #e53935;
+  max-width: 150px;
+}
+
+.refresh {
+  background: #283d60;
+}
+
+@media(max-width: 600px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    padding: 12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>🎮 ARU TOPUP</h2>
+  <p>Administrator Dashboard</p>
+</header>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div class="login-box" id="loginBox">
+  <h2>🔐 Admin Login</h2>
+
+  <input
+    type="password"
+    id="password"
+    placeholder="Enter Admin Password"
+  >
+
+  <button onclick="login()">LOGIN</button>
+
+  <p id="loginMessage"></p>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+
+  <h2>📊 Dashboard</h2>
+
+  <div class="stats">
+
+    <div class="stat">
+      <h3>Total Orders</h3>
+      <p id="totalOrders">0</p>
+    </div>
+
+    <div class="stat">
+      <h3>Pending</h3>
+      <p id="pendingOrders">0</p>
+    </div>
+
+    <div class="stat">
+      <h3>Completed</h3>
+      <p id="completedOrders">0</p>
+    </div>
+
+  </div>
+
+  <button class="refresh" onclick="loadOrders()">
+    🔄 Refresh Orders
+  </button>
+
+  <button class="logout" onclick="logout()">
+    Logout
+  </button>
+
+  <h2 style="margin-top:25px;">📦 Customer Orders</h2>
+
+  <div id="orders">
+    Loading orders...
+  </div>
+
+</div>
+
+</div>
+
+<script>
+let adminPassword = "";
+
+async function login() {
+  const password =
+    document.getElementById("password").value;
+
+  const message =
+    document.getElementById("loginMessage");
+
+  if (!password) {
+    message.innerText = "Please enter password";
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ password })
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      message.innerText = "Incorrect password!";
+      return;
+    }
+
+    adminPassword = password;
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+
+    loadOrders();
+
+  } catch (error) {
+    message.innerText =
+      "Server error! Please try again.";
+  }
+}
+
+async function loadOrders() {
+  const box = document.getElementById("orders");
+
+  box.innerHTML = "Loading orders...";
+
+  try {
+    const response = await fetch("/api/admin/orders", {
+      headers: {
+        "Authorization": "Bearer " + adminPassword
+      }
+    });
+
+    if (!response.ok) {
+      box.innerHTML =
+        "Unable to load orders. Please check server.";
+      return;
+    }
+
+    const orders = await response.json();
+
+    document.getElementById("totalOrders").innerText =
+      orders.length;
+
+    document.getElementById("pendingOrders").innerText =
+      orders.filter(o => o.status === "Pending").length;
+
+    document.getElementById("completedOrders").innerText =
+      orders.filter(o => o.status === "Completed").length;
+
+    if (!orders.length) {
+      box.innerHTML = "<p>No orders found.</p>";
+      return;
+    }
+
+    box.innerHTML = "";
+
+    orders.forEach(order => {
+      const div = document.createElement("div");
+      div.className = "order";
+
+      const statusClass =
+        order.status === "Completed" ? "completed" :
+        order.status === "Cancelled" ? "cancelled" :
+        "pending";
+
+      div.innerHTML = `
+        <h3>Order #${order.id}</h3>
+
+        <p><b>UID:</b> ${escapeHTML(order.uid)}</p>
+        <p><b>Player:</b> ${escapeHTML(order.playerName)}</p>
+        <p><b>Package:</b> ${escapeHTML(order.package)}</p>
+        <p><b>Price:</b> ৳${Number(order.price) || 0}</p>
+        <p><b>Transaction ID:</b>
+        ${escapeHTML(order.transactionId)}</p>
+
+        <p><b>Status:</b>
+        <span class="status ${statusClass}">
+        ${escapeHTML(order.status)}</span></p>
+
+        <select id="status-${order.id}">
+          <option value="Pending">Pending</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+
+        <button onclick="updateStatus('${order.id}')">
+          Update Status
+        </button>
+      `;
+
+      box.appendChild(div);
+
+      div.querySelector("select").value =
+        order.status || "Pending";
+    });
+
+  } catch (error) {
+    box.innerHTML =
+      "Connection error. Please refresh.";
+  }
+}
+
+async function updateStatus(id) {
+  const select =
+    document.getElementById("status-" + id);
+
+  const status = select.value;
+
+  try {
+    const response = await fetch(
+      "/api/admin/orders/" + encodeURIComponent(id),
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + adminPassword
+        },
+        body: JSON.stringify({ status })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message || "Update failed");
+      return;
+    }
+
+    alert("Order status updated!");
+    loadOrders();
+
+  } catch (error) {
+    alert("Server connection error!");
+  }
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+}
+
+function logout() {
+  adminPassword = "";
+
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("loginBox").style.display = "block";
+  document.getElementById("password").value = "";
+}
+</script>
+
+</body>
+  </html>

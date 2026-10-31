@@ -1,23 +1,17 @@
 // =======================================================
-// WEBSITE NAME (NICKNAME)
+// WEBSITE NAME (ARU TOPUP)
 // =======================================================
-var website_name = "YASIN";
+var website_name = "arutopup";
 
 // =======================================================
 // TELEGRAM CHANNEL LINK
 // =======================================================
-var telegram_channel_link = "telegram channel link";
+var telegram_channel_link = "https://t.me/+dvCVF52_JVFlMWRl";
 
 // =======================================================
 // TELEGRAM GROUP LINK
 // =======================================================
-var telegram_group_link = "telegram group link";
-
-// =======================================================
-// YOUTUBE CHANNEL LINK
-// =======================================================
-var youtube_channel_link = "YouTube channel link";
-
+var telegram_group_link = "https://t.me/+-n8KO6WSZJIyMmVl";
 // =======================================================
 // NOTIFICATION TEXT
 // =======================================================

@@ -6,31 +6,40 @@ const crypto = require("crypto");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 app.use(express.static(__dirname));
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Aru123#?";
-const SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const SECRET = process.env.SESSION_SECRET;
 
-const DATA_FILE = path.join(__dirname, "orders.json");
+const ORDERS_FILE = path.join(__dirname, "orders.json");
+const PRODUCTS_FILE = path.join(__dirname, "products.json");
 
-function readOrders() {
+function readJSON(file, fallback = []) {
   try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    return JSON.parse(fs.readFileSync(file, "utf8"));
   } catch {
-    return [];
+    return fallback;
   }
 }
 
-function saveOrders(orders) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(orders, null, 2));
+function saveJSON(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
-// Simple signed admin token
+function readOrders() {
+  return readJSON(ORDERS_FILE);
+}
+
+function readProducts() {
+  return readJSON(PRODUCTS_FILE);
+}
+
+// ADMIN TOKEN
 function createToken() {
-  const payload = Buffer.from(
-    JSON.stringify({ exp: Date.now() + 24 * 60 * 60 * 1000 })
-  ).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({
+    exp: Date.now() + 86400000
+  })).toString("base64url");
 
   const signature = crypto
     .createHmac("sha256", SECRET)
@@ -41,12 +50,13 @@ function createToken() {
 }
 
 function verifyToken(req, res, next) {
-  const auth = req.headers.authorization || "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const token = (req.headers.authorization || "")
+    .replace(/^Bearer\s+/i, "");
+
   const parts = token.split(".");
 
-  if (parts.length !== 2) {
-    return res.status(401).json({ message: "Please login first" });
+  if (!SECRET || parts.length !== 2) {
+    return res.status(401).json({ message: "Login required" });
   }
 
   const expected = crypto
@@ -54,16 +64,19 @@ function verifyToken(req, res, next) {
     .update(parts[0])
     .digest("base64url");
 
-  if (parts[1] !== expected) {
-    return res.status(401).json({ message: "Invalid session" });
+  const a = Buffer.from(parts[1]);
+  const b = Buffer.from(expected);
+
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    return res.status(401).json({ message: "Invalid token" });
   }
 
   try {
-    const payload = JSON.parse(
+    const data = JSON.parse(
       Buffer.from(parts[0], "base64url").toString()
     );
 
-    if (payload.exp < Date.now()) {
+    if (data.exp < Date.now()) {
       return res.status(401).json({ message: "Session expired" });
     }
   } catch {
@@ -73,13 +86,16 @@ function verifyToken(req, res, next) {
   next();
 }
 
-// Admin login
+// ADMIN LOGIN
 app.post("/api/admin/login", (req, res) => {
-  const password = req.body.password;
+  if (!ADMIN_PASSWORD || !SECRET) {
+    return res.status(503).json({
+      message: "Admin settings missing"
+    });
+  }
 
-  if (password !== ADMIN_PASSWORD) {
+  if (req.body.password !== ADMIN_PASSWORD) {
     return res.status(401).json({
-      success: false,
       message: "Incorrect password"
     });
   }
@@ -90,14 +106,141 @@ app.post("/api/admin/login", (req, res) => {
   });
 });
 
-// Create customer order
+// PUBLIC PRODUCT LIST
+app.get("/api/products", (req, res) => {
+  res.json(readProducts().filter(p => p.active !== false));
+});
+
+// ADMIN PRODUCT LIST
+app.get("/api/admin/products", verifyToken, (req, res) => {
+  res.json(readProducts());
+});
+
+// ADD PRODUCT
+app.post("/api/admin/products", verifyToken, (req, res) => {
+  const { name, price, category } = req.body || {};
+
+  const productName = String(name || "").trim();
+  const productCategory = String(category || "").trim();
+  const productPrice = Number(price);
+
+  if (
+    !productName ||
+    !productCategory ||
+    !Number.isFinite(productPrice) ||
+    productPrice < 0
+  ) {
+    return res.status(400).json({
+      message: "Valid name, category and price required"
+    });
+  }
+
+  const products = readProducts();
+
+  const product = {
+    id: crypto.randomUUID(),
+    name: productName,
+    price: productPrice,
+    category: productCategory,
+    active: true
+  };
+
+  products.push(product);
+  saveJSON(PRODUCTS_FILE, products);
+
+  res.status(201).json({
+    success: true,
+    product
+  });
+});
+
+// UPDATE PRODUCT
+app.patch("/api/admin/products/:id", verifyToken, (req, res) => {
+  const products = readProducts();
+
+  const product = products.find(
+    p => p.id === req.params.id
+  );
+
+  if (!product) {
+    return res.status(404).json({
+      message: "Product not found"
+    });
+  }
+
+  if (req.body.name !== undefined) {
+    const name = String(req.body.name).trim();
+
+    if (!name) {
+      return res.status(400).json({
+        message: "Product name required"
+      });
+    }
+
+    product.name = name;
+  }
+
+  if (req.body.price !== undefined) {
+    const price = Number(req.body.price);
+
+    if (!Number.isFinite(price) || price < 0) {
+      return res.status(400).json({
+        message: "Invalid price"
+      });
+    }
+
+    product.price = price;
+  }
+
+  if (req.body.category !== undefined) {
+    product.category = String(req.body.category).trim();
+  }
+
+  if (req.body.active !== undefined) {
+    product.active = Boolean(req.body.active);
+  }
+
+  saveJSON(PRODUCTS_FILE, products);
+
+  res.json({
+    success: true,
+    product
+  });
+});
+
+// DELETE PRODUCT
+app.delete("/api/admin/products/:id", verifyToken, (req, res) => {
+  const products = readProducts();
+
+  const updated = products.filter(
+    p => p.id !== req.params.id
+  );
+
+  if (updated.length === products.length) {
+    return res.status(404).json({
+      message: "Product not found"
+    });
+  }
+
+  saveJSON(PRODUCTS_FILE, updated);
+
+  res.json({ success: true });
+});
+
+// CREATE ORDER
 app.post("/api/orders", (req, res) => {
-  const { uid, playerName, package: pack, price, transactionId } = req.body;
+  const {
+    uid,
+    playerName,
+    package: pack,
+    price,
+    transactionId
+  } = req.body || {};
 
   if (!uid || !pack || !transactionId) {
     return res.status(400).json({
       success: false,
-      message: "UID, package and transaction ID required"
+      message: "Required information missing"
     });
   }
 
@@ -115,43 +258,53 @@ app.post("/api/orders", (req, res) => {
   };
 
   orders.unshift(order);
-  saveOrders(orders);
+  saveJSON(ORDERS_FILE, orders);
 
-  res.json({ success: true, order });
+  res.json({
+    success: true,
+    order
+  });
 });
 
-// Protected: all orders
+// ADMIN ORDERS
 app.get("/api/admin/orders", verifyToken, (req, res) => {
   res.json(readOrders());
 });
 
-// Protected: update order status
+// UPDATE ORDER STATUS
 app.patch("/api/admin/orders/:id", verifyToken, (req, res) => {
   const orders = readOrders();
-  const order = orders.find(o => o.id === req.params.id);
+
+  const order = orders.find(
+    o => o.id === req.params.id
+  );
 
   if (!order) {
-    return res.status(404).json({ message: "Order not found" });
+    return res.status(404).json({
+      message: "Order not found"
+    });
   }
 
-  const allowed = ["Pending", "Completed", "Cancelled"];
-
-  if (!allowed.includes(req.body.status)) {
-    return res.status(400).json({ message: "Invalid status" });
+  if (!["Pending", "Completed", "Cancelled"].includes(req.body.status)) {
+    return res.status(400).json({
+      message: "Invalid status"
+    });
   }
 
   order.status = req.body.status;
-  saveOrders(orders);
+  saveJSON(ORDERS_FILE, orders);
 
-  res.json({ success: true, order });
+  res.json({
+    success: true,
+    order
+  });
 });
 
-// Admin page
+// PAGES
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// Home page
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "FFX.html"));
 });

@@ -9,12 +9,16 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: "100kb" }));
 app.use(express.static(__dirname));
 const SETTINGS_FILE = path.join(__dirname, "settings.json");
+const DEPOSITS_FILE = path.join(__dirname, "deposits.json");
+const WALLETS_FILE = path.join(__dirname, "wallets.json");
 
-function readSettings() {
-  return readJSON(SETTINGS_FILE, {
-    paymentMethod: "bKash",
-    bkashNumber: "01709290790"
-  });
+function readDeposits() {
+  return readJSON(DEPOSITS_FILE);
+}
+
+function readWallets() {
+  return readJSON(WALLETS_FILE, {});
+}
 }
 const ADMIN_PASSWORD = "Aru330#?";
 const SECRET ="ARU_TOPUP_SECRET_2026";
@@ -275,7 +279,140 @@ app.delete("/api/admin/products/:id", verifyToken, (req, res) => {
 
   res.json({ success: true });
 });
+// ===================================
+// ARU TOPUP - ADD MONEY & WALLET API
+// ===================================
 
+// CUSTOMER: Submit Add Money Request
+app.post("/api/add-money", (req, res) => {
+  const { uid, amount, senderNumber, transactionId } = req.body || {};
+
+  const customerUID = String(uid || "").trim();
+  const sender = String(senderNumber || "").trim();
+  const trx = String(transactionId || "").trim();
+  const money = Number(amount);
+
+  if (!customerUID || !sender || !trx) {
+    return res.status(400).json({
+      success: false,
+      message: "All information required"
+    });
+  }
+
+  if (!Number.isFinite(money) || money < 10 || money > 50000) {
+    return res.status(400).json({
+      success: false,
+      message: "Amount must be between 10 and 50000"
+    });
+  }
+
+  if (!/^01[3-9]\d{8}$/.test(sender)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid sender number"
+    });
+  }
+
+  const deposits = readDeposits();
+
+  const duplicate = deposits.some(
+    d => d.transactionId.toLowerCase() === trx.toLowerCase()
+  );
+
+  if (duplicate) {
+    return res.status(409).json({
+      success: false,
+      message: "Transaction ID already submitted"
+    });
+  }
+
+  const deposit = {
+    id: crypto.randomUUID(),
+    uid: customerUID,
+    amount: money,
+    senderNumber: sender,
+    transactionId: trx,
+    status: "Pending",
+    createdAt: new Date().toISOString()
+  };
+
+  deposits.unshift(deposit);
+  saveJSON(DEPOSITS_FILE, deposits);
+
+  res.status(201).json({
+    success: true,
+    message: "Request submitted. Waiting for admin verification.",
+    deposit
+  });
+});
+
+
+// ADMIN: View Add Money Requests
+app.get("/api/admin/deposits", verifyToken, (req, res) => {
+  res.json(readDeposits());
+});
+
+
+// ADMIN: Approve or Reject Request
+app.patch("/api/admin/deposits/:id", verifyToken, (req, res) => {
+  const { status } = req.body || {};
+
+  if (!["Approved", "Rejected"].includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid status"
+    });
+  }
+
+  const deposits = readDeposits();
+
+  const deposit = deposits.find(
+    d => d.id === req.params.id
+  );
+
+  if (!deposit) {
+    return res.status(404).json({
+      success: false,
+      message: "Request not found"
+    });
+  }
+
+  if (deposit.status !== "Pending") {
+    return res.status(409).json({
+      success: false,
+      message: "Request already processed"
+    });
+  }
+
+  if (status === "Approved") {
+    const wallets = readWallets();
+
+    const uid = deposit.uid;
+
+    wallets[uid] = Number(wallets[uid] || 0) + deposit.amount;
+
+    saveJSON(WALLETS_FILE, wallets);
+  }
+
+  deposit.status = status;
+  deposit.updatedAt = new Date().toISOString();
+
+  saveJSON(DEPOSITS_FILE, deposits);
+
+  res.json({
+    success: true,
+    message: status === "Approved"
+      ? "Money added to wallet"
+      : "Request rejected",
+    deposit
+  });
+});
+
+
+// ADMIN: View Wallet Balances
+app.get("/api/admin/wallets", verifyToken, (req, res) => {
+  res.json(readWallets());
+});
 // CREATE ORDER
 app.post("/api/orders", (req, res) => {
   const {

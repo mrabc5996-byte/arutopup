@@ -1,0 +1,20 @@
+{
+  "logo": null,
+  "ffBanner": null,
+  "ffPackages": null,
+  "banners": null,
+  "quick": [
+    {
+      "label": "Telegram",
+      "url": ""
+    },
+    {
+      "label": "Join Group",
+      "url": ""
+    },
+    {
+      "label": "WhatsApp",
+      "url": ""
+    }
+  ]
+}

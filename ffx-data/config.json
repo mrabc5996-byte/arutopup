@@ -192,6 +192,15 @@
           "price": 430
         }
       ]
+    },
+    "in": {
+      "packages": [
+        {
+          "label": "0 diamond",
+          "name": "0 diamond",
+          "price": 0
+        }
+      ]
     }
   },
   "texts": {

@@ -153,6 +153,45 @@
           "price": 200
         }
       ]
+    },
+    "lu": {
+      "packages": [
+        {
+          "label": "Level Up Package - Level 6",
+          "name": "Level Up Package - Level 6",
+          "price": 40
+        },
+        {
+          "label": "Level Up Package - Level 10",
+          "name": "Level Up Package - Level 10",
+          "price": 73
+        },
+        {
+          "label": "Level Up Package - Level 15",
+          "name": "Level Up Package - Level 15",
+          "price": 75
+        },
+        {
+          "label": "Level Up Package - Level 20",
+          "name": "Level Up Package - Level 20",
+          "price": 75
+        },
+        {
+          "label": "Level Up Package - Level 25",
+          "name": "Level Up Package - Level 25",
+          "price": 75
+        },
+        {
+          "label": "Level Up Package - Level 30",
+          "name": "Level Up Package - Level 30",
+          "price": 100
+        },
+        {
+          "label": "Full Level Up (1270 Diamond)",
+          "name": "Full Level Up (1270 Diamond)",
+          "price": 430
+        }
+      ]
     }
   },
   "texts": {

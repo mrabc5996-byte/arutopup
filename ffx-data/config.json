@@ -1,11 +1,26 @@
 {
   "logo": null,
   "ffBanner": null,
-  "ffPackages": null,
   "banners": [
     "default:Banner 3.jpg",
     "default:Banner 1.jpg",
     "default:Banner 2.jpg"
   ],
-  "quick": null
+  "quick": [
+    {
+      "label": "Telegram",
+      "url": ""
+    },
+    {
+      "label": "Join Group",
+      "url": ""
+    },
+    {
+      "label": "YouTube",
+      "url": ""
+    }
+  ],
+  "images": null,
+  "prod": null,
+  "texts": null
 }

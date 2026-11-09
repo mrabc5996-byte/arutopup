@@ -21,7 +21,82 @@
     }
   ],
   "images": null,
-  "prod": null,
+  "prod": {
+    "uid": {
+      "packages": [
+        {
+          "label": "WEEKLY ⚡",
+          "name": "WEEKLY ⚡",
+          "price": 157
+        },
+        {
+          "label": "MONTHLY",
+          "name": "MONTHLY",
+          "price": 765
+        },
+        {
+          "label": "25 Diamond",
+          "name": "25 Diamond",
+          "price": 20
+        },
+        {
+          "label": "50 Diamond",
+          "name": "50 Diamond",
+          "price": 37
+        },
+        {
+          "label": "115 Diamond",
+          "name": "115 Diamond",
+          "price": 79
+        },
+        {
+          "label": "240 Diamond",
+          "name": "240 Diamond",
+          "price": 158
+        },
+        {
+          "label": "355 Diamond",
+          "name": "355 Diamond",
+          "price": 237
+        },
+        {
+          "label": "480 Diamond",
+          "name": "480 Diamond",
+          "price": 316
+        },
+        {
+          "label": "610 Diamond",
+          "name": "610 Diamond",
+          "price": 400
+        },
+        {
+          "label": "850 Diamond",
+          "name": "850 Diamond",
+          "price": 558
+        },
+        {
+          "label": "1240 Diamond",
+          "name": "1240 Diamond",
+          "price": 800
+        },
+        {
+          "label": "2530 Diamond",
+          "name": "2530 Diamond",
+          "price": 1610
+        },
+        {
+          "label": "5060 Diamond",
+          "name": "5060 Diamond",
+          "price": 3220
+        },
+        {
+          "label": "10120 Diamond",
+          "name": "10120 Diamond",
+          "price": 6440
+        }
+      ]
+    }
+  },
   "texts": {
     "pop": "সবথেকে কম দামে টপআপ করার জন্য সেরা ওয়েবসাইট\n১০০% বিশ্বস্ত ও দ্রুত ডেলিভারিতে\nঅর্ডার করুন নিশ্চিন্তে 🥰",
     "siteName": "ARU TOPUP"
